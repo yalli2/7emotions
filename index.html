@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEVEN KEYS · 세븐 키 — 일곱 감정 감정조절 프로그램 | 다인에듀</title>
+<meta name="description" content="CBT 기반 성인 감정조절 HR 프로그램 — 공포·슬픔·분노·혐오·죄책감·수치심·행복, 일곱 감정을 챕터별 실시간 인터랙티브 실습으로">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head><body>
+<script src="js/core.js"></script><script src="js/chapters.js"></script>
+<section class="hero"><div class="wrap">
+  <div class="kicker">다인에듀 HR 프로그램 · 성인 감정조절 과정</div>
+  <h1>SEVEN KEYS<br><span style="font-size:.62em;font-weight:700;opacity:.92">일곱 감정, 일곱 개의 열쇠</span></h1>
+  <p>감정은 고쳐야 할 병이 아니라 우리를 돕는 신호입니다. 문제는 감정이 아니라 감정에 대한 <b>반응</b>. 공포·슬픔·분노·혐오·죄책감·수치심·행복 — 일곱 감정의 원리를 이해하고, 견디고, 감정의 덫에서 나오는 열쇠를 동료들과 실시간으로 함께 익힙니다.</p>
+  <div class="row" style="margin-top:20px"><a class="btn y" href="lesson.html?ch=0">▶ 서론부터 시작하기</a><button class="btn ghost" style="color:#fff" id="join">🔴 실시간 수업 참여</button><a class="btn ghost" style="color:#fff" href="journal.html">📔 나의 감정 일지</a></div>
+  <div class="hero-keys" id="hk"></div>
+</div></section>
+<div class="wrap">
+  <div class="card" style="margin-top:-30px;position:relative">
+    <div class="grid3">
+      <div><div class="kicker">PRINCIPLE 1</div><h3>🔍 이해하고 받아들이기</h3><p class="small muted">각 감정의 원인, 다섯 요소(느낌·신체·표정·생각·행동), 그리고 감정이 존재하는 이유</p></div>
+      <div><div class="kicker">PRINCIPLE 2</div><h3>🌊 견디고 도움 되게 반응하기</h3><p class="small muted">곧바로 행동하지 않고 견디는 연습으로 “감정 인내의 창”을 넓히기</p></div>
+      <div><div class="kicker">PRINCIPLE 3</div><h3>🗝️ 감정의 덫에서 나오기</h3><p class="small muted">회피·위축·폭발·곱씹기 같은 악순환을 CBT 기법으로 끊기</p></div>
+    </div>
+  </div>
+  <h2 style="margin-top:34px">커리큘럼</h2>
+  <div class="chlist" id="cl"></div>
+  <h2 style="margin-top:34px">우리 반 지금 감정 날씨</h2>
+  <p class="small muted">방에 참여하면 서론 체크인 결과가 실시간으로 표시됩니다.</p>
+  <div id="weather"></div>
+  <h2 style="margin-top:34px">이렇게 진행합니다</h2>
+  <div class="grid3">
+    <div class="card flat"><h3>1. 강사가 방 열기</h3><p class="small">강사는 <a href="board.html">강사 보드</a>에서 새 방을 만들고 QR을 화면에 띄웁니다. 챕터를 고르면 그 챕터의 모든 실시간 활동 결과가 한 화면에 모입니다.</p></div>
+    <div class="card flat"><h3>2. 수강생 참여</h3><p class="small">QR이나 링크로 접속해 닉네임만 입력하면 끝. 투표·척도·감정 레이더·산점도·포스트잇에 응답하면 모두의 결과가 차트로 즉시 갱신됩니다.</p></div>
+    <div class="card flat"><h3>3. 나만의 기록</h3><p class="small">경험 기록, 덫 그리기, 생각 기록, 책임 파이 같은 개인 워크시트는 공유되지 않고 내 브라우저에만 저장되며, 마지막 챕터에서 종합 리포트로 모입니다.</p></div>
+  </div>
+  <div class="callout small" style="margin:24px 0">📚 교재: Lawrence Howells, <i>Understanding Your 7 Emotions: CBT for Everyday Emotions and Common Mental Health Problems</i> (Routledge). 이 사이트는 교재의 구조와 개념을 바탕으로 수업용으로 재구성·요약한 것입니다.</div>
+</div>
+<script>
+const {$,EMOS,LIVE,renderActivity,topbar,initRoomFromURL,joinModal,footer,esc}=SK;
+topbar('home'); initRoomFromURL(); footer();
+$('#join').onclick=()=>joinModal();
+const label=c=>c.no===0?'서론':c.no===8?'종합':`${c.no}장`;
+$('#cl').innerHTML=CHAPTERS.map(c=>`<a href="lesson.html?ch=${c.no}" style="--c:${c.color}"><span class="small muted">${label(c)} · ${c.sections.length}개 세션</span><b>${c.face} ${esc(c.title)}</b><span class="small">${esc(c.sub)}</span></a>`).join('');
+$('#hk').innerHTML=`<svg width="330" height="330" viewBox="0 0 330 330">${EMOS.map((e,i)=>{const a=-Math.PI/2+i*2*Math.PI/7,x=165+120*Math.cos(a),y=165+120*Math.sin(a);return `<line x1="165" y1="165" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.18)" stroke-width="2"/><circle cx="${x}" cy="${y}" r="34" fill="${e.c}"/><text x="${x}" y="${y-4}" text-anchor="middle" font-size="22">${e.f}</text><text x="${x}" y="${y+18}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">${e.ko}</text>`}).join('')}<circle cx="165" cy="165" r="44" fill="#f3c34a"/><text x="165" y="172" text-anchor="middle" font-size="28">🗝️</text></svg>`;
+renderActivity($('#weather'),{id:'c0-checkin',type:'emo7',label:'감정 체크인 (서론)',q:'지금 이 순간, 각 감정을 얼마나 느끼고 있나요? (0~10)'});
+</script>
+</body></html>

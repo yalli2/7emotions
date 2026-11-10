@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>강사 라이브 보드 · SEVEN KEYS</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head><body>
+<script src="js/core.js"></script><script src="js/chapters.js"></script>
+<div class="board-top"><div class="wrap">
+  <div class="row" style="align-items:flex-start;gap:24px">
+    <div style="flex:1;min-width:280px">
+      <div class="kicker" style="color:var(--accent)">FACILITATOR LIVE BOARD</div>
+      <h1 style="margin:.1em 0">강사 라이브 보드</h1>
+      <div class="row" style="margin-top:10px"><span>방 코드</span><span id="code" style="font-size:2.4rem;font-weight:800;color:var(--accent);letter-spacing:3px">—</span>
+        <input id="roomIn" placeholder="기존 방 코드" style="width:150px;text-transform:uppercase"><button class="btn y sm" id="useRoom">열기</button><button class="btn ghost sm" style="color:#fff" id="newRoom">새 방 만들기</button></div>
+      <div class="row" style="margin-top:10px"><span class="small">챕터</span><select id="chSel" style="width:auto;max-width:420px"></select><select id="secSel" style="width:auto;max-width:300px"></select></div>
+      <div class="small" style="margin-top:10px;opacity:.85">참여자 <b id="pc">0</b>명 · 응답 <b id="mc">0</b>건 · <span id="st"></span></div><div class="who" id="who" style="margin-top:6px"></div>
+    </div>
+    <div style="text-align:center"><div class="qrbox" id="qr"></div><div class="small" style="margin-top:6px;opacity:.8;max-width:210px;word-break:break-all" id="link"></div><button class="btn ghost sm" style="color:#fff;margin-top:6px" id="copy">링크 복사</button></div>
+  </div>
+</div></div>
+<div class="wrap">
+  <div class="callout small" style="margin-top:18px">수강생은 QR을 찍거나 링크로 접속해 닉네임을 입력하면 이 방에 참여합니다. 선택한 챕터의 실시간 활동 결과가 아래에 자동으로 갱신됩니다. 응답은 공개 중계 서버(ntfy.sh)에 12시간 보관되므로 수업마다 <b>새 방</b>을 만들고, 수강생에게 실명이나 민감한 개인정보는 적지 않도록 안내해 주세요.</div>
+  <div class="board-grid" id="grid"></div>
+</div>
+<script>
+const {$,$$,LIVE,renderActivity,store,toast,esc,topbar,footer}=SK;
+topbar('board'); footer();
+const label=c=>c.no===0?'서론':c.no===8?'종합':`${c.no}장`;
+const sel=$('#chSel'), ssel=$('#secSel');
+sel.innerHTML=CHAPTERS.map(c=>`<option value="${c.no}">${label(c)} ${c.face} ${c.title}</option>`).join('');
+const gen=()=>{ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='K'; for(let i=0;i<5;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; };
+const p=new URLSearchParams(location.search);
+let room=(p.get('room')||store.get('boardRoom','')||'').toUpperCase(); if(!room) room=gen();
+sel.value=p.get('ch')||store.get('boardCh','0');
+function fillSec(){ const ch=CHAPTERS[+sel.value]; ssel.innerHTML=`<option value="all">전체 세션</option>`+ch.sections.map((s,i)=>`<option value="${i}">${i+1}. ${s.title}</option>`).join(''); ssel.value=store.get('boardSec','all'); if(!ssel.value) ssel.value='all'; }
+function link(){ const u=new URL('lesson.html',location.href); u.searchParams.set('ch',sel.value); if(ssel.value!=='all') u.searchParams.set('s',ssel.value); u.searchParams.set('room',room); return u.toString(); }
+function qr(){ const l=link(); $('#link').textContent=l; try{ const q=qrcode(0,'M'); q.addData(l); q.make(); $('#qr').innerHTML=q.createImgTag(5,0); }catch(e){ $('#qr').textContent='QR 생성 실패'; } }
+function setRoom(r){ room=r; store.set('boardRoom',r); $('#code').textContent=r; LIVE.setRoom(r); qr(); build(); }
+function build(){
+  store.set('boardCh',sel.value); store.set('boardSec',ssel.value);
+  const ch=CHAPTERS[+sel.value], g=$('#grid'); g.innerHTML='';
+  document.documentElement.style.setProperty('--emo',ch.color);
+  ch.sections.forEach((s,i)=>{ if(ssel.value!=='all'&&+ssel.value!==i) return;
+    s.blocks.filter(b=>b.t==='live').forEach(b=>{ const d=document.createElement('div'); g.appendChild(d); renderActivity(d,b.act,{board:true}); const t=document.createElement('div'); t.className='tiny muted'; t.style.marginTop='-4px'; t.textContent=`세션 ${i+1} · ${s.title}`; d.prepend(t); }); });
+  if(!g.children.length) g.innerHTML='<div class="muted">이 세션에는 실시간 활동이 없습니다.</div>';
+}
+function stats(){ const ppl=LIVE.people(); ppl.delete(LIVE.me.u); $('#pc').textContent=ppl.size; $('#mc').textContent=LIVE.msgs.length; $('#who').innerHTML=[...ppl.values()].slice(0,60).map(n=>`<span>${esc(n)}</span>`).join(''); $('#st').textContent={live:'🟢 실시간 연결됨',connecting:'🟡 연결 중…',offline:'🔴 연결 끊김',off:'⚪ 꺼짐'}[LIVE.status]; }
+LIVE.on(stats);
+sel.onchange=()=>{ store.set('boardSec','all'); fillSec(); qr(); build(); };
+ssel.onchange=()=>{ qr(); build(); };
+$('#newRoom').onclick=()=>{ setRoom(gen()); toast('새 방을 만들었습니다'); };
+$('#useRoom').onclick=()=>{ const r=$('#roomIn').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,''); if(r) setRoom(r); };
+$('#copy').onclick=()=>navigator.clipboard?.writeText(link()).then(()=>toast('링크를 복사했습니다'));
+if(!LIVE.me.n) LIVE.setNick('강사');
+fillSec(); setRoom(room); stats();
+</script>
+</body></html>
